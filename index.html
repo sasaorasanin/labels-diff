@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labels Difference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="container max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Compare Language Labels</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">First Language Labels</h3>
+                <textarea id="first_language" class="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-800 text-white" placeholder="Enter labels (e.g., key=value)"></textarea>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Second Language Labels</h3>
+                <textarea id="second_language" class="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-800 text-white" placeholder="Enter labels (e.g., key=value)"></textarea>
+            </div>
+        </div>
+        <button class="mt-6 w-full md:w-64 mx-auto block bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-500 transition duration-300" onclick="findDifference()">Find Difference</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">First Language Labels Missing in Second Language</h3>
+                <textarea id="first_language_missing_in_second_language" class="w-full h-64 p-4 border border-gray-300 rounded-lg bg-gray-800 text-white" readonly></textarea>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Second Language Labels Missing in First Language</h3>
+                <textarea id="second_language_missing_in_first_language" class="w-full h-64 p-4 border border-gray-300 rounded-lg bg-gray-800 text-white" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function findDifference() {
+            let first_language = document.getElementById('first_language').value.split(/\n/);
+            let second_language = document.getElementById('second_language').value.split(/\n/);
+            
+            if (first_language[0] !== "" && second_language[0] !== "") {
+                let first_language_object = makeObject(first_language);
+                let second_language_object = makeObject(second_language);
+                
+                let first_language_labels_that_are_not_within_second_language = diffLabels(first_language_object, second_language_object);
+                let second_language_labels_that_are_not_within_first_language = diffLabels(second_language_object, first_language_object);
+                
+                document.getElementById('first_language_missing_in_second_language').value = makeLines(first_language_labels_that_are_not_within_second_language);
+                document.getElementById('second_language_missing_in_first_language').value = makeLines(second_language_labels_that_are_not_within_first_language);
+                
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                
+                return true;
+            }
+            alert('Languages cannot be empty');
+        }
+        
+        function makeLines(object) {
+            let lines = [];
+            let keys = Object.keys(object);
+            for (let i = 0; i < keys.length; i++) {
+                lines.push(keys[i] + '=' + object[keys[i]]);
+            }
+            return lines.join('\r\n');
+        }
+        
+        function makeObject(lines) {
+            let obj = {};
+            for (var i = 0; i < lines.length; i++) {
+                if (/\S/.test(lines[i])) {
+                    let line = lines[i].trim().split("=");
+                    obj[line[0]] = line[1] ? [line[1]] : '';
+                }
+            }
+            return obj;
+        }
+        
+        function diffLabels(from_object, in_object) {
+            let diff = {};
+            let from_object_keys = Object.keys(from_object);
+            let in_object_keys = Object.keys(in_object);
+            for (let i = 0; i < from_object_keys.length; i++) {
+                if (!in_object_keys.includes(from_object_keys[i].trim())) {
+                    diff[from_object_keys[i].trim()] = from_object[from_object_keys[i].trim()];
+                }
+            }
+            return diff;
+        }
+    </script>
+</body>
+</html>
